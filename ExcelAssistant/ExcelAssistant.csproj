@@ -9,7 +9,8 @@
         <Description>A library for reading and writing Excel files. Based on NPOI pacage.</Description>
         <Copyright>2023</Copyright>
         <PackageProjectUrl>https://github.com/StanDotNet/ExcelAssistant</PackageProjectUrl>
-        <PackageLicenseUrl>MIT</PackageLicenseUrl>
+        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/StanDotNet/ExcelAssistant</RepositoryUrl>
         <PackageTags>ExcelHelper, xls, xlsx, ExcelWriter, ExcelAssistant</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -18,6 +19,11 @@
     <ItemGroup>
       <PackageReference Include="FuzzySharp" Version="2.0.2" />
       <PackageReference Include="NPOI" Version="2.6.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\LICENSE.md" Pack="true" PackagePath="\" />
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
