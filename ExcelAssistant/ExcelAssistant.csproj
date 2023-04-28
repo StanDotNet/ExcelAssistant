@@ -12,7 +12,7 @@
         <PackageLicenseUrl>MIT</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/StanDotNet/ExcelAssistant</RepositoryUrl>
         <PackageTags>ExcelHelper, xls, xlsx, ExcelWriter, ExcelAssistant</PackageTags>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
