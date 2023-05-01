@@ -1,53 +1,66 @@
-﻿using FuzzySharp;
+﻿using System.Reflection;
+using FuzzySharp;
 using FuzzySharp.PreProcess;
 using NPOI.SS.UserModel;
 
 namespace ExcelAssistant;
 
-public abstract class ExcelReader<TObject> : ExcelHelper
+public class ExcelReader: ExcelHelper
 {
-    ExcelReader(Stream stream) : this(stream, new())
+    public ExcelReader(Stream stream) : this(stream, new())
     {
     }
 
-    ExcelReader(Stream stream, ExcelConfiguration configuration) 
+    public ExcelReader(Stream stream, ExcelConfiguration configuration) 
         : base(configuration)
     {
         OpenWorkbook(stream);
         OpenSheet();
     }
     
-    public List<TObject> Read(CancellationToken cancellationToken = new())
+    public List<TObject> Read<TObject>(CancellationToken cancellationToken = new()) where TObject : class, new()
     {
-        SetHeaders(sheet.GetRow(sheet.FirstRowNum));
-        var records = ReadRecords(sheet, cancellationToken);
+        SetHeaders<TObject>(sheet.GetRow(sheet.FirstRowNum));
+        var records = ReadRecords(cancellationToken);
+        var instances = records.Select(CreateInstance<TObject>).ToList();
 
-        return records;
+        return instances;
     }
     
-    protected virtual void SetHeaders(IRow row)
+    public IEnumerable<Dictionary<string,string>> Read(CancellationToken cancellationToken = new())
+    {
+        SetHeaders(sheet.GetRow(sheet.FirstRowNum));
+        var records = ReadRecords(cancellationToken);
+        foreach (var record in records)
+        {
+            yield return record;
+        }
+    }
+
+    private void SetHeaders<TObject>(IRow row)
     {
         var headersName = GetHeaders<TObject>();
         var cells = row.Cells
             .Where(c => !string.IsNullOrWhiteSpace(c.StringCellValue))
             .ToList();
-        
-        foreach (var headerName in headersName)
-        {
-            var cell = cells.FirstOrDefault(c => Fuzz.PartialRatio(c.StringCellValue, headerName, PreprocessMode.Full) >= configuration.MatchingPercentage);
-            if (cell != null)
-            {
-                headers.Add(cell.ColumnIndex, cell.StringCellValue.Trim());
-                cells.Remove(cell);
-            }
-        }
-        
-        cells.ForEach(c => headers.Add(c.ColumnIndex, c.StringCellValue.Trim()));
+
+        headers = cells
+            .Select(c => KeyValuePair.Create(c.ColumnIndex,
+                configuration.HumanReadableHeaders.FirstOrDefault(h => h.Value == c.StringCellValue).Key
+                ?? headersName.FirstOrDefault(h => Fuzz.PartialRatio(c.StringCellValue, h, PreprocessMode.Full)
+                                                   >= configuration.MatchingPercentage) ?? string.Empty))
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
     
-    protected virtual List<TObject> ReadRecords(ISheet sheet, CancellationToken cancellationToken = new())
+    private void SetHeaders(IRow row)
     {
-        var records = new List<TObject>();
+        headers = row.Cells
+            .Where(c => !string.IsNullOrWhiteSpace(c.StringCellValue))
+            .ToDictionary(c => c.ColumnIndex, c => c.StringCellValue);
+    }
+    
+    private IEnumerable<Dictionary<string,string>> ReadRecords(CancellationToken cancellationToken = new())
+    {
         for (int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -58,14 +71,12 @@ public abstract class ExcelReader<TObject> : ExcelHelper
             IRow row = sheet.GetRow(i);
             if (row == null) continue;
             if (row.Cells.All(d => d.CellType == CellType.Blank)) continue;
-            
-            records.Add(Map(row));
+
+            yield return GetRowData(row);
         }
-
-        return records;
     }
-
-    protected Dictionary<string, string> GetRowData(IRow row)
+    
+    private Dictionary<string, string> GetRowData(IRow row)
     {
         var rowData = new Dictionary<string, string>();
         foreach (var kv in headers)
@@ -76,13 +87,70 @@ public abstract class ExcelReader<TObject> : ExcelHelper
 
         return rowData;
     }
-
-    protected abstract TObject CreateInstance(Dictionary<string, string> headers);
     
-    private TObject Map(IRow row)
+    private TObject CreateInstance<TObject>(Dictionary<string, string> rowData) where TObject : class, new()
     {
-        var rowData = GetRowData(row);
+        var type = typeof(TObject);
+        var constructor = type.GetConstructors()
+            .OrderByDescending(c => c.GetParameters().Length)
+            .First();
+        
+        var parameters = constructor
+            .GetParameters()
+            .Select(p => GetConstructorParameter(p, rowData))
+            .ToArray();
+        
+        var instance = (TObject)Activator.CreateInstance(typeof(TObject), parameters);
+        
+        if (instance != null)
+        {
+            var ctorParameterNames = constructor.GetParameters().Select(p => p.Name);
 
-        return CreateInstance(rowData);
+            instance.GetType()
+                .GetProperties()
+                .Where(p => !ctorParameterNames.Contains(p.Name))
+                .Where(p => p.SetMethod != null)
+                .ToList()
+                .ForEach(property =>
+                {
+                    var parameter = GetParameter(property.PropertyType, rowData.GetValueOrDefault(property.Name));
+                    property.SetValue(instance, parameter);
+                });
+        }
+
+        return instance;
     }
+
+    private object? GetConstructorParameter(ParameterInfo parameter, Dictionary<string, string> rowData)
+    {
+        var type = parameter.ParameterType;
+        var value = rowData.GetValueOrDefault(parameter.Name);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return parameter.HasDefaultValue && parameter.DefaultValue != null
+                ? parameter.DefaultValue
+                : (type.IsValueType ? Activator.CreateInstance(type) : null);
+        }
+
+        return GetParameter(type, value);
+    }
+
+    private object? GetParameter(Type type, string value) => type switch
+    {
+        _ when string.IsNullOrWhiteSpace(value) => null,
+        _ when type == typeof(string) => value,
+        _ when type == typeof(byte) || type == typeof(byte?) => byte.Parse(value),
+        _ when type == typeof(short) || type == typeof(short?) => short.Parse(value),
+        _ when type == typeof(int) || type == typeof(int?) => int.Parse(value),
+        _ when type == typeof(long) || type == typeof(long?) => long.Parse(value),
+        _ when type == typeof(double) || type == typeof(double?) => double.Parse(value),
+        _ when type == typeof(float) || type == typeof(float?) => float.Parse(value),
+        _ when type == typeof(decimal) || type == typeof(decimal?) => decimal.Parse(value),
+        _ when type == typeof(Guid) || type == typeof(Guid?) => Guid.Parse(value),
+        _ when type == typeof(DateTime) || type == typeof(DateTime?) => DateTime.Parse(value),
+        _ when type == typeof(TimeSpan) || type == typeof(TimeSpan?) => TimeSpan.Parse(value),
+        _ when type == typeof(DateOnly) || type == typeof(DateOnly?) => DateOnly.Parse(value),
+        _ when type == typeof(TimeOnly) || type == typeof(TimeOnly?) => TimeOnly.Parse(value),
+        _ =>  throw new NotSupportedException($"The configuration property type {type.Name} is not supported")
+    };
 }
