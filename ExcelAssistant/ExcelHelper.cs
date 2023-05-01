@@ -55,8 +55,8 @@ public abstract class ExcelHelper : IDisposable
             : workbook.CreateSheet(configuration.SheetName);
     }
 
-    protected int GetColumnSize(int maxlengthContent) =>
-        maxlengthContent * 270;
+    protected int GetColumnSize(int maxContentLength) =>
+        maxContentLength * configuration.ColumnSizeCoefficient;
     
     protected virtual ICellStyle GetBoldCellStyle(short? color = null, bool first = false, bool last = false)
     {

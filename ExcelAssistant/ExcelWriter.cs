@@ -37,14 +37,14 @@ public class ExcelWriter : ExcelHelper
             workbook.Write(stream, true);
             stream.Position = 0;
         }
-        
+
         return stream;
     }
     
     protected virtual void Write<TObject>(List<TObject> records, CancellationToken cancellationToken = new())
     {
         var rowIndex = 0;
-        var columnSize = headers.ToDictionary(kv => kv.Key, kv => kv.Value.Length + 1);
+        var columnSize = headers.ToDictionary(kv => kv.Key, kv => kv.Value.Length);
         
         records.ForEach(r =>
         {
@@ -64,10 +64,14 @@ public class ExcelWriter : ExcelHelper
                 var value = values[keyValuePair.Value];
                 row.CreateCell(keyValuePair.Key).SetCellValue(value);
                 
-                if (!string.IsNullOrEmpty(value) && columnSize[keyValuePair.Key] < value.Length)
+                columnSize[keyValuePair.Key] = new List<int> 
                 {
-                    columnSize[keyValuePair.Key] = value.Length;
-                }
+                    columnSize[keyValuePair.Key],
+                    keyValuePair.Value.Length,
+                    value.Length,
+                    configuration.HumanReadableHeaders.GetValueOrDefault(keyValuePair.Value)?.Length ?? 0
+                }.Max();
+                
             }
         });
         
