@@ -29,6 +29,13 @@ public abstract class ExcelHelper : IDisposable
     {
         stream.Position = 0;
 
+        if (configuration.ExcelType == null && stream is FileStream fileStream)
+        {
+            configuration.ExcelType = fileStream.Name.EndsWith(".xlsx") 
+                ? ExcelType.xlsx 
+                : ExcelType.xls;
+        }
+        
         switch (configuration.ExcelType)
         {
             case ExcelType.xls:
