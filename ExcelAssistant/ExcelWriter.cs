@@ -24,7 +24,8 @@ public class ExcelWriter : ExcelHelper
         CreateSheet();
     }
     
-    public Stream WriteRecords<TObject>(Stream stream, List<TObject> records, CancellationToken cancellationToken = new())
+    public Stream WriteRecords<TObject>(Stream stream, List<TObject> records, CancellationToken cancellationToken = new()) 
+        where TObject : class
     {
         SetHeaders(records);
         SetDefaultColumnStyle();
@@ -42,6 +43,7 @@ public class ExcelWriter : ExcelHelper
     }
     
     protected virtual void Write<TObject>(List<TObject> records, CancellationToken cancellationToken = new())
+        where TObject : class
     {
         var rowIndex = 0;
         var columnSize = headers.ToDictionary(kv => kv.Key, kv => kv.Value.Length);
@@ -81,7 +83,7 @@ public class ExcelWriter : ExcelHelper
         }
     }
     
-    protected virtual void SetHeaders<TObject>(List<TObject> records)
+    protected virtual void SetHeaders<TObject>(List<TObject> records) where TObject : class
     {
         var key = 0;
         var headersName = GetHeaders(records);
@@ -97,10 +99,10 @@ public class ExcelWriter : ExcelHelper
         });
     }
     
-    protected virtual List<string> GetHeaders<TObject>(List<TObject> records) =>
+    protected virtual List<string> GetHeaders<TObject>(List<TObject> records) where TObject : class =>
         GetHeaders<TObject>();
     
-    protected virtual Dictionary<string, string> GetValues<TObject>(TObject record) =>
+    protected virtual Dictionary<string, string> GetValues<TObject>(TObject record) where TObject : class =>
         record
             ?.GetType()
             .GetProperties()

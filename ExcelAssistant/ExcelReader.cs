@@ -18,7 +18,7 @@ public class ExcelReader: ExcelHelper
         OpenSheet();
     }
     
-    public List<TObject> Read<TObject>(CancellationToken cancellationToken = new()) where TObject : class, new()
+    public List<TObject> Read<TObject>(CancellationToken cancellationToken = new()) where TObject : class
     {
         SetHeaders<TObject>(sheet.GetRow(sheet.FirstRowNum));
         var records = ReadRecords(cancellationToken);
@@ -88,7 +88,7 @@ public class ExcelReader: ExcelHelper
         return rowData;
     }
     
-    private TObject CreateInstance<TObject>(Dictionary<string, string> rowData) where TObject : class, new()
+    private TObject CreateInstance<TObject>(Dictionary<string, string> rowData) where TObject : class
     {
         var type = typeof(TObject);
         var constructor = type.GetConstructors()
