@@ -48,7 +48,7 @@ public class ExcelReader: ExcelHelper
             .Select(c => KeyValuePair.Create(c.ColumnIndex,
                 configuration.HumanReadableHeaders.FirstOrDefault(h => h.Value == c.StringCellValue).Key
                 ?? headersName.FirstOrDefault(h => Fuzz.PartialRatio(c.StringCellValue, h, PreprocessMode.Full)
-                                                   >= configuration.MatchingPercentage) ?? string.Empty))
+                                                   >= configuration.MatchingPercentage) ?? c.StringCellValue))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
     
