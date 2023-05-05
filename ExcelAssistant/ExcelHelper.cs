@@ -35,6 +35,8 @@ public abstract class ExcelHelper : IDisposable
                 ? ExcelType.xlsx 
                 : ExcelType.xls;
         }
+
+        configuration.ExcelType ??= ExcelType.xls;
         
         switch (configuration.ExcelType)
         {
