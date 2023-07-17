@@ -50,18 +50,18 @@ public abstract class ExcelHelper : IDisposable
         }
     }
 
-    protected void OpenSheet()
+    public void OpenSheet(string? sheetName = null)
     {
-        sheet = string.IsNullOrWhiteSpace(configuration.SheetName)
+        sheet = string.IsNullOrWhiteSpace(sheetName ?? configuration.SheetName)
             ? workbook.GetSheetAt(0)
-            : workbook.GetSheet(configuration.SheetName);
+            : workbook.GetSheet(sheetName ?? configuration.SheetName);
     }
 
-    protected void CreateSheet()
+    public void CreateSheet(string? sheetName = null)
     {
-        sheet = string.IsNullOrWhiteSpace(configuration.SheetName)
+        sheet = string.IsNullOrWhiteSpace(sheetName ?? configuration.SheetName)
             ? workbook.CreateSheet()
-            : workbook.CreateSheet(configuration.SheetName);
+            : workbook.CreateSheet(sheetName ?? configuration.SheetName);
     }
 
     protected int GetColumnSize(int maxContentLength) =>
