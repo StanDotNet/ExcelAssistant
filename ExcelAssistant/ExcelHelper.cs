@@ -52,16 +52,17 @@ public abstract class ExcelHelper : IDisposable
 
     public void OpenSheet(string? sheetName = null)
     {
-        sheet = string.IsNullOrWhiteSpace(sheetName ?? configuration.SheetName)
+        sheetName ??= configuration.SheetName;
+        sheet = string.IsNullOrWhiteSpace(sheetName)
             ? workbook.GetSheetAt(0)
-            : workbook.GetSheet(sheetName ?? configuration.SheetName);
+            : workbook.GetSheet(sheetName);
     }
 
     public void CreateSheet(string? sheetName = null)
     {
-        sheet = string.IsNullOrWhiteSpace(sheetName ?? configuration.SheetName)
+        sheet = string.IsNullOrWhiteSpace(sheetName)
             ? workbook.CreateSheet()
-            : workbook.CreateSheet(sheetName ?? configuration.SheetName);
+            : workbook.CreateSheet(sheetName);
     }
 
     protected int GetColumnSize(int maxContentLength) =>
