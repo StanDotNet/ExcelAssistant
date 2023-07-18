@@ -14,7 +14,7 @@
         <RepositoryUrl>https://github.com/StanDotNet/ExcelAssistant</RepositoryUrl>
         <PackageTags>ExcelHelper, xls, xlsx, ExcelWriter, ExcelAssistant</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>1.2.2</Version>
+        <Version>1.2.3</Version>
     </PropertyGroup>
 
     <ItemGroup>

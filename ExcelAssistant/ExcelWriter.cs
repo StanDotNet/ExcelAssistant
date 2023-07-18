@@ -88,6 +88,7 @@ public class ExcelWriter : ExcelHelper
         var key = 0;
         var headersName = GetHeaders(records);
         IRow headersRow = sheet.CreateRow(key);
+        headers.Clear();
         
         headersName.ForEach(n =>
         {
