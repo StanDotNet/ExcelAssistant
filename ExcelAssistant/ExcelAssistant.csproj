@@ -14,12 +14,12 @@
         <RepositoryUrl>https://github.com/StanDotNet/ExcelAssistant</RepositoryUrl>
         <PackageTags>ExcelHelper, xls, xlsx, ExcelWriter, ExcelAssistant</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>1.2.3</Version>
+        <Version>1.2.4</Version>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="FuzzySharp" Version="2.0.2" />
-      <PackageReference Include="NPOI" Version="2.6.0" />
+      <PackageReference Include="NPOI" Version="2.6.1" />
     </ItemGroup>
 
     <ItemGroup>
