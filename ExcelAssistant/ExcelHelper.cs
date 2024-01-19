@@ -36,20 +36,20 @@ public abstract class ExcelHelper : IDisposable
                 : ExcelType.xls;
         }
         
-        CreateWorkbook();
+        CreateWorkbook(stream);
     }
     
-    protected void CreateWorkbook()
+    protected void CreateWorkbook(Stream? stream = null)
     {
         configuration.ExcelType ??= ExcelType.xls;
         
         switch (configuration.ExcelType)
         {
             case ExcelType.xls:
-                workbook = new HSSFWorkbook();
+                workbook = stream == null ? new HSSFWorkbook() : new HSSFWorkbook(stream);
                 break;
             case ExcelType.xlsx:
-                workbook = new XSSFWorkbook();
+                workbook = stream == null ? new XSSFWorkbook() : new XSSFWorkbook(stream);
                 break;
             default: throw new Exception("Unsupported excel type");
         }
