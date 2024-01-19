@@ -35,14 +35,14 @@ public abstract class ExcelHelper : IDisposable
                 ? ExcelType.xlsx 
                 : ExcelType.xls;
         }
-
-        configuration.ExcelType ??= ExcelType.xls;
         
         CreateWorkbook();
     }
     
     protected void CreateWorkbook()
     {
+        configuration.ExcelType ??= ExcelType.xls;
+        
         switch (configuration.ExcelType)
         {
             case ExcelType.xls:
@@ -59,7 +59,7 @@ public abstract class ExcelHelper : IDisposable
     {
         sheetName ??= configuration.SheetName;
         sheet = string.IsNullOrWhiteSpace(sheetName)
-            ? workbook.GetSheetAt(0)
+            ? workbook.GetSheetAt(workbook.ActiveSheetIndex)
             : workbook.GetSheet(sheetName);
     }
 

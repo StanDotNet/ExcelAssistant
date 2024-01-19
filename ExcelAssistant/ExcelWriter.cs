@@ -11,7 +11,7 @@ public class ExcelWriter : ExcelHelper
 
     public ExcelWriter(ExcelConfiguration configuration) : base(new ExcelConfiguration
     {
-        ExcelType = configuration.ExcelType ?? ExcelType.xlsx,
+        ExcelType = configuration.ExcelType,
         SheetName = configuration.SheetName,
         HumanReadableHeaders = configuration.HumanReadableHeaders,
         MainColumnName = configuration.MainColumnName
