@@ -38,13 +38,18 @@ public abstract class ExcelHelper : IDisposable
 
         configuration.ExcelType ??= ExcelType.xls;
         
+        CreateWorkbook();
+    }
+    
+    protected void CreateWorkbook()
+    {
         switch (configuration.ExcelType)
         {
             case ExcelType.xls:
-                workbook = new HSSFWorkbook(stream);
+                workbook = new HSSFWorkbook();
                 break;
             case ExcelType.xlsx:
-                workbook = new XSSFWorkbook(stream);
+                workbook = new XSSFWorkbook();
                 break;
             default: throw new Exception("Unsupported excel type");
         }

@@ -11,16 +11,14 @@ public class ExcelWriter : ExcelHelper
 
     public ExcelWriter(ExcelConfiguration configuration) : base(new ExcelConfiguration
     {
-        //Currently only xls type works properly in NPOI library
-        ExcelType = ExcelType.xls,
+        ExcelType = configuration.ExcelType ?? ExcelType.xlsx,
         SheetName = configuration.SheetName,
         HumanReadableHeaders = configuration.HumanReadableHeaders,
         MainColumnName = configuration.MainColumnName
         
     })
     {
-        //Currently only xls type works properly in NPOI library
-        workbook = new HSSFWorkbook();
+        CreateWorkbook();
         CreateSheet();
     }
     
