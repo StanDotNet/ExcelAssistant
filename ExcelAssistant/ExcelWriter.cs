@@ -19,12 +19,12 @@ public class ExcelWriter : ExcelHelper
     })
     {
         CreateWorkbook();
-        CreateSheet();
     }
     
     public Stream WriteRecords<TObject>(Stream stream, List<TObject> records, CancellationToken cancellationToken = new()) 
         where TObject : class
     {
+        CreateSheet();
         SetHeaders(records);
         SetDefaultColumnStyle();
         
