@@ -66,9 +66,14 @@ public abstract class ExcelHelper : IDisposable
     public void CreateSheet(string? sheetName = null)
     {
         sheetName ??= configuration.SheetName;
-        sheet = string.IsNullOrWhiteSpace(sheetName)
-            ? workbook.CreateSheet()
-            : workbook.CreateSheet(sheetName);
+        if (!string.IsNullOrWhiteSpace(sheetName))
+        {
+            sheet = workbook.CreateSheet(sheetName);
+        }
+        else if (sheet == null)
+        {
+            sheet = workbook.CreateSheet();
+        }
     }
 
     protected int GetColumnSize(int maxContentLength) =>
