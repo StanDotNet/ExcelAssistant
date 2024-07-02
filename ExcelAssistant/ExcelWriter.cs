@@ -52,9 +52,10 @@ public class ExcelWriter : ExcelHelper
         return stream;
     }
 
-    public void CopyTo(Stream stream, CancellationToken cancellationToken = new())
+    public void CopyTo(Stream stream)
     {
         workbook.Write(stream);
+        stream.Position = 0;
     }
 
     protected virtual void Write<TObject>(List<TObject> records, CancellationToken cancellationToken = new())
