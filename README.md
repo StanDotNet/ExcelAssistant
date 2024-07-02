@@ -58,22 +58,33 @@ public record Report(string Name, string Email, decimal Balance);
 Also, we can change our output file header by adding configuration:
 
 ```csharp
-var config = new ExcelConfiguration
-{
-    HumanReadableHeaders = new Dictionary<string, string>()
-    {
-        {nameof(Report.Name), "Customer Name"},
-        {nameof(Report.Email), "Customer Email"},
-    }
-};
-
 using var stream = File.OpenWrite("records.xls");
-using var writer = new ExcelWriter(config);
+using var writer = new ExcelWriter();
+
+writer.AddMapping<Report>(r => r.Name, "Customer Name");
+writer.AddMapping<Report>(r => r.Email, "Customer Email");
+
 writer.WriteRecords(stream, records);
 ```
 
-Reading files where table headers are the same as c# model properties:
+Example of recording various models across multiple Excel worksheets.
 
+```csharp
+using var stream = File.OpenWrite("records.xls");
+using var writer = new ExcelWriter();
+
+writer.AddMapping<Report>(r => r.Type, "Activity Type");
+writer.AddMapping<Report>(r => r.Date, "Activity Date");
+writer.AddMapping<Customer>(c => c.Name, "Customer Name");
+writer.AddMapping<Customer>(c => c.Email, "Customer Email");
+
+writer.BuildSheet(Customers, "Customeers");
+writer.BuildSheet(report, "Report");
+
+writer.CopyTo(stream);
+```
+
+Reading files where table headers are the same as c# model properties:
 
 ```csharp
 using var stream = File.OpenRead("records.xls");

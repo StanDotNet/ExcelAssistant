@@ -1,4 +1,5 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using System.Linq.Expressions;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
@@ -39,17 +40,17 @@ public abstract class ExcelHelper : IDisposable
         CreateWorkbook(stream);
     }
     
-    protected void CreateWorkbook(Stream? stream = null)
+    protected void CreateWorkbook(Stream? stream = null, ExcelType excelType = ExcelType.xls)
     {
-        configuration.ExcelType ??= ExcelType.xls;
+        configuration.ExcelType ??= excelType;
         
         switch (configuration.ExcelType)
         {
             case ExcelType.xls:
-                workbook = stream == null ? new HSSFWorkbook() : new HSSFWorkbook(stream);
+                workbook = stream?.Length > 0 ? new HSSFWorkbook(stream) : new HSSFWorkbook();
                 break;
             case ExcelType.xlsx:
-                workbook = stream == null ? new XSSFWorkbook() : new XSSFWorkbook(stream);
+                workbook = stream?.Length > 0 ? new XSSFWorkbook(stream) : new XSSFWorkbook();
                 break;
             default: throw new Exception("Unsupported excel type");
         }
@@ -76,6 +77,24 @@ public abstract class ExcelHelper : IDisposable
         }
     }
 
+    public void AddMapping<TObject>(Expression<Func<TObject, object>> propertyExpression, string columnName)
+    {
+        var propertyName = GetPropertyName(propertyExpression);
+
+        if (!string.IsNullOrWhiteSpace(propertyName))
+        {
+            configuration.HumanReadableHeaders.Add(propertyName, columnName);
+        }
+    }
+    
+    private string? GetPropertyName<TObject>(Expression<Func<TObject, object>> propertyExpression) =>
+        propertyExpression.Body switch
+        {
+            MemberExpression memberExpression => memberExpression.Member.Name,
+            UnaryExpression unaryExpression => ((MemberExpression)unaryExpression.Operand).Member.Name,
+            _ => null
+        };
+    
     protected int GetColumnSize(int maxContentLength) =>
         maxContentLength * configuration.ColumnSizeCoefficient;
     
