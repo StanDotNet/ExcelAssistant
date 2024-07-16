@@ -96,8 +96,8 @@ public abstract class ExcelHelper : IDisposable
         };
     
     protected int GetColumnSize(int maxContentLength) =>
-        maxContentLength * configuration.ColumnSizeCoefficient > 250 
-            ? 250 
+        maxContentLength > 210 
+            ? 210 * configuration.ColumnSizeCoefficient
             : maxContentLength * configuration.ColumnSizeCoefficient;
     
     protected virtual ICellStyle GetBoldCellStyle(short? color = null, bool first = false, bool last = false)
