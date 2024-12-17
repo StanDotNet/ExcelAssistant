@@ -4,7 +4,10 @@ namespace ExcelAssistant;
 
 public class ExcelWriter : ExcelHelper
 {
-    public ExcelWriter() : this(new ExcelConfiguration())
+    public ExcelWriter() : this(new ExcelConfiguration()
+    {
+        ExcelType = ExcelType.xlsx
+    })
     {
     }
 
@@ -54,7 +57,7 @@ public class ExcelWriter : ExcelHelper
 
     public void CopyTo(Stream stream)
     {
-        workbook.Write(stream);
+        workbook.Write(stream, true);
         stream.Position = 0;
     }
 
