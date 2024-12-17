@@ -77,6 +77,13 @@ public abstract class ExcelHelper : IDisposable
         }
     }
 
+    public string ContentType => configuration.ExcelType switch
+    {
+        ExcelType.xls => ExcelConstants.XlsContentType,
+        ExcelType.xlsx => ExcelConstants.XlsxContentType,
+        _ => ExcelConstants.StreamContentType
+    };
+
     public void AddMapping<TObject>(Expression<Func<TObject, object>> propertyExpression, string columnName)
     {
         var propertyName = GetPropertyName(propertyExpression);

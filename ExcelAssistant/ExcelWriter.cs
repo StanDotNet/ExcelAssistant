@@ -4,10 +4,7 @@ namespace ExcelAssistant;
 
 public class ExcelWriter : ExcelHelper
 {
-    public ExcelWriter() : this(new ExcelConfiguration()
-    {
-        ExcelType = ExcelType.xlsx
-    })
+    public ExcelWriter() : this(new ExcelConfiguration() {ExcelType = ExcelType.xlsx})
     {
     }
 
