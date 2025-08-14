@@ -1,10 +1,11 @@
-﻿using NPOI.SS.UserModel;
+﻿using System.Globalization;
+using NPOI.SS.UserModel;
 
 namespace ExcelAssistant;
 
 public class ExcelWriter : ExcelHelper
 {
-    public ExcelWriter() : this(new ExcelConfiguration() {ExcelType = ExcelType.xlsx})
+    public ExcelWriter() : this(new ExcelConfiguration() { ExcelType = ExcelType.xlsx })
     {
     }
 
@@ -19,7 +20,8 @@ public class ExcelWriter : ExcelHelper
         CreateWorkbook();
     }
 
-    public void BuildSheet<TObject>(List<TObject> records, string sheetName = null, CancellationToken cancellationToken = new())
+    public void BuildSheet<TObject>(
+        List<TObject> records, string sheetName = null, CancellationToken cancellationToken = new())
         where TObject : class
     {
         CreateSheet(sheetName);
@@ -79,15 +81,27 @@ public class ExcelWriter : ExcelHelper
 
             foreach (var keyValuePair in headers)
             {
+                var cell = row.CreateCell(keyValuePair.Key);
                 var cellValue = values.First(v => v.Name == keyValuePair.Value);
-                
-                row.CreateCell(keyValuePair.Key).SetCellValue(cellValue.Value).SetCellType(cellValue.CellType);
+
+                var updatedCell = cellValue.Value switch
+                {
+                    sbyte or byte or short or ushort or int or uint or long or ulong or float or double or decimal
+                        => cell.SetCellValue(Convert.ToDouble(cellValue.Value, CultureInfo.InvariantCulture)),
+                    DateOnly date => cell.SetCellValue(date),
+                    bool flag => cell.SetCellValue(flag),
+                    string str => cell.SetCellValue(str),
+                    DateTime time => cell.SetCellValue(time),
+                    _ => cell.SetCellValue(cellValue.Value?.ToString() ?? string.Empty),
+                };
+
+                var length = cellValue.Value is string s ? s.Length : cellValue.Value?.ToString()?.Length;
 
                 columnSize[keyValuePair.Key] = new List<int>
                 {
                     columnSize[keyValuePair.Key],
                     keyValuePair.Value.Length,
-                    cellValue.Value.Length,
+                    cellValue.Value?.ToString()?.Length ?? 1,
                     configuration.HumanReadableHeaders.GetValueOrDefault(keyValuePair.Value)?.Length ?? 0
                 }.Max();
             }
@@ -110,7 +124,11 @@ public class ExcelWriter : ExcelHelper
         {
             headers.Add(key, n);
             var cell = headersRow.CreateCell(key);
-            cell.CellStyle = GetBoldCellStyle(IndexedColors.Grey80Percent.Index, first: key == 0, last: key == headersName.Count - 1);
+
+            cell.CellStyle = GetBoldCellStyle(IndexedColors.Grey80Percent.Index,
+                first: key == 0,
+                last: key == headersName.Count - 1);
+
             cell.SetCellValue(configuration.HumanReadableHeaders.GetValueOrDefault(n) ?? n);
             key++;
         });
@@ -118,30 +136,14 @@ public class ExcelWriter : ExcelHelper
 
     protected virtual List<string> GetHeaders<TObject>(List<TObject> records) where TObject : class =>
         GetHeaders<TObject>();
-    
+
     protected virtual List<CellValue> GetValues<TObject>(TObject record) where TObject : class =>
         record?
             .GetType()
             .GetProperties()
-            .Select(p => 
-                new CellValue(p.Name, p.GetValue(record)?.ToString() ?? string.Empty, GetCellType(p.GetValue(record))))
+            .Select(p => new CellValue(p.Name, p.GetValue(record)))
             .ToList()
         ?? new List<CellValue>();
-    
-    private static CellType GetCellType(object? value)
-    {
-        if (value == null) return CellType.Blank;
-
-        return value switch
-        {
-            bool => CellType.Boolean,
-            sbyte or byte or short or ushort or int or uint or long or ulong or float or double or decimal
-                => CellType.Numeric,
-            string s when s.StartsWith("=") => CellType.Formula,
-            string => CellType.String,
-            _ => CellType.Unknown
-        };
-    }
 }
 
-public record CellValue(string Name, string Value, CellType CellType);
+public record CellValue(string Name, object Value);
