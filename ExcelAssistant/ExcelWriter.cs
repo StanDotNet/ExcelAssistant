@@ -79,14 +79,15 @@ public class ExcelWriter : ExcelHelper
 
             foreach (var keyValuePair in headers)
             {
-                var value = values[keyValuePair.Value];
-                row.CreateCell(keyValuePair.Key).SetCellValue(value);
+                var cellValue = values.First(v => v.Name == keyValuePair.Value);
+                
+                row.CreateCell(keyValuePair.Key).SetCellValue(cellValue.Value).SetCellType(cellValue.CellType);
 
                 columnSize[keyValuePair.Key] = new List<int>
                 {
                     columnSize[keyValuePair.Key],
                     keyValuePair.Value.Length,
-                    value.Length,
+                    cellValue.Value.Length,
                     configuration.HumanReadableHeaders.GetValueOrDefault(keyValuePair.Value)?.Length ?? 0
                 }.Max();
             }
@@ -117,11 +118,30 @@ public class ExcelWriter : ExcelHelper
 
     protected virtual List<string> GetHeaders<TObject>(List<TObject> records) where TObject : class =>
         GetHeaders<TObject>();
-
-    protected virtual Dictionary<string, string> GetValues<TObject>(TObject record) where TObject : class =>
-        record
-            ?.GetType()
+    
+    protected virtual List<CellValue> GetValues<TObject>(TObject record) where TObject : class =>
+        record?
+            .GetType()
             .GetProperties()
-            .ToDictionary(k => k.Name, v => v.GetValue(record)?.ToString() ?? string.Empty)
-        ?? new();
+            .Select(p => 
+                new CellValue(p.Name, p.GetValue(record)?.ToString() ?? string.Empty, GetCellType(p.GetValue(record))))
+            .ToList()
+        ?? new List<CellValue>();
+    
+    private static CellType GetCellType(object? value)
+    {
+        if (value == null) return CellType.Blank;
+
+        return value switch
+        {
+            bool => CellType.Boolean,
+            sbyte or byte or short or ushort or int or uint or long or ulong or float or double or decimal
+                => CellType.Numeric,
+            string s when s.StartsWith("=") => CellType.Formula,
+            string => CellType.String,
+            _ => CellType.Unknown
+        };
+    }
 }
+
+public record CellValue(string Name, string Value, CellType CellType);
