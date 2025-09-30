@@ -25,7 +25,7 @@ public class ExcelConfiguration
     /// <summary>
     /// Percent Matching excel headers with c# model fields. 
     /// </summary>
-    public int MatchingPercentage { get; set; } = 80;
+    public int MatchingPercentage { get; set; } = 90;
 
     /// <summary>
     /// The coefficient shows how much space is needed for one symbol.

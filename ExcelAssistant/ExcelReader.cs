@@ -15,11 +15,11 @@ public class ExcelReader: ExcelHelper
         : base(configuration)
     {
         OpenWorkbook(stream);
-        OpenSheet();
     }
     
-    public List<TObject> Read<TObject>(CancellationToken cancellationToken = new()) where TObject : class
+    public List<TObject> Read<TObject>(string sheetName = null, CancellationToken cancellationToken = new()) where TObject : class
     {
+        OpenSheet(sheetName);
         SetHeaders<TObject>(sheet.GetRow(sheet.FirstRowNum));
         var records = ReadRecords(cancellationToken);
         var instances = records.Select(CreateInstance<TObject>).ToList();

@@ -1,15 +1,14 @@
 ﻿# ExcelAssistant
 
-ExcelAssistant is a .NET library that provides a simple and efficient way to work with Microsoft Excel files. With ExcelAssistant, you can easily read, write, and manipulate Excel files in your .NET applications.
+ExcelAssistant is a lightweight and efficient .NET library designed to simplify working with Microsoft Excel files. It allows developers to easily read, write, and manipulate Excel workbooks and worksheets directly within their .NET applications.
 
 ## Features
 
 - Read data from Excel files
 - Write data to Excel files
-- Manipulate Excel files (add, delete, rename sheets, set sheet color, etc.)
-- Set cell values and formats
-- Set column width and row height
-- Apply styles to cells and sheets
+- Manipulate worksheets: add, delete, rename, set tab colors
+- Customize cells: set values, formats, column widths, and row heights
+- Apply styles to cells and worksheets
 
 ## Installation
 
@@ -30,89 +29,63 @@ dotnet add package ExcelAssistant
 
 ### Writing a Excel File
 
-Let's look at how we can create and write excel files. In our example, we will use the simple "Report" record model, but it can be any other c# class.
+The following example demonstrates how to create an Excel file with multiple worksheets and custom headers:
 
 ```csharp
 using ExcelAssistant;
 
-//Create a list of test data
-var records = new List<Report>()
+// Sample data
+var reports = new List<Report>()
 {
     new("Maki", "test@gmail.com", 100),
     new("Smith", "test1@gmail.com", 200),
     new("Lara", "test2@gmail.com", 450),
 };
 
-//Open or create the file for reading (the file will be in the project output directory)
-using var stream = File.OpenWrite("records.xls");
+var customers = new List<Customer>()
+{
+    new("Alice", "alice@mail.com"),
+    new("Bob", "bob@mail.com"),
+    new("Charlie", "charlie@mail.com"),
+};
 
-//Create an instance of ExcelWriter.
-using var writer = new ExcelWriter();
-//Write records into the file
-writer.WriteRecords(stream, records);
-
-//"Report" model 
-public record Report(string Name, string Email, decimal Balance);
-```
-
-Also, we can change our output file header by adding configuration:
-
-```csharp
-using var stream = File.OpenWrite("records.xls");
 using var writer = new ExcelWriter();
 
+// Define column mappings
 writer.AddMapping<Report>(r => r.Name, "Customer Name");
-writer.AddMapping<Report>(r => r.Email, "Customer Email");
+writer.AddMapping<Report>(r => r.Balance, "Account Balance");
+writer.AddMapping<Customer>(c => c.Email, "Email Address");
 
-writer.WriteRecords(stream, records);
-```
+// Build multiple sheets
+writer.BuildSheet(reports, "Reports");
+writer.BuildSheet(customers, "Customers");
 
-Example of recording various models across multiple Excel worksheets.
-
-```csharp
-using var stream = File.OpenWrite("records.xls");
-using var writer = new ExcelWriter();
-
-writer.AddMapping<Report>(r => r.Type, "Activity Type");
-writer.AddMapping<Report>(r => r.Date, "Activity Date");
-writer.AddMapping<Customer>(c => c.Name, "Customer Name");
-writer.AddMapping<Customer>(c => c.Email, "Customer Email");
-
-writer.BuildSheet(Customers, "Customeers");
-writer.BuildSheet(report, "Report");
-
+// Save the Excel file
+using var stream = File.OpenWrite("records.xlsx");
 writer.CopyTo(stream);
+
+
+// Example models
+public record Report(string Name, string Email, decimal Balance);
+public record Customer(string Name, string Email);
+
 ```
 
-Reading files where table headers are the same as c# model properties:
+### Reading from an Excel File
+
+You can also read data back into C# models. Column headers in the Excel file must match the defined mappings.
 
 ```csharp
-using var stream = File.OpenRead("records.xls");
+using var stream = File.OpenRead("records.xlsx");
 using var reader = new ExcelReader(stream);
-var records = reader.Read<Report>();
-```
 
-Now reading files using the configuration mentioned above
+reader.AddMapping<Report>(r => r.Name, "Customer Name");
+reader.AddMapping<Report>(r => r.Balance, "Account Balance");
+reader.AddMapping<Customer>(c => c.Email, "Email Address");
 
-```csharp
-using var stream = File.OpenRead("records.xls");
-using var reader = new ExcelReader(stream, config);
-var records = reader.Read<Report>();
-```
-
-The library provides the opportunity for manual reading. Method Read return IEnumerable<Dictionary<string,string>> where key is the column name and value is the data for the specific row.
-
-```csharp
-using var stream = File.OpenRead("records.xls");
-using var reader = new ExcelReader(stream, config);
-var records = reader
-    .Read()
-    .Select(rowData => new Report(
-        rowData[nameof(Report.Name)],
-        rowData[nameof(Report.Email)],
-        decimal.Parse(rowData[nameof(Report.Balance)])
-    ))
-    .ToList();
+// if sheet nane is not set it will read firs sheet
+var reportRecords = reader.Read<Report>();
+var customerRecords = reader.Read<Customer>("Customers");
 ```
 
 ## License
