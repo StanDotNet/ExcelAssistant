@@ -94,6 +94,21 @@ public abstract class ExcelHelper : IDisposable
         }
     }
     
+    public void Exclude<TObject>(Expression<Func<TObject, object>> propertyExpression)
+    {
+        var propertyName = GetPropertyName(propertyExpression);
+        
+        Exclude(propertyName);
+    }
+    
+    public void Exclude(string? header)
+    {
+        if (!string.IsNullOrWhiteSpace(header))
+        {
+            configuration.Exclusions.Add(header);
+        }
+    }
+    
     private string? GetPropertyName<TObject>(Expression<Func<TObject, object>> propertyExpression) =>
         propertyExpression.Body switch
         {
@@ -189,7 +204,11 @@ public abstract class ExcelHelper : IDisposable
     }
     
     protected virtual List<string> GetHeaders<TObject>() =>
-        typeof(TObject).GetProperties().Select(p => p.Name).ToList();
+        typeof(TObject)
+            .GetProperties()
+            .Select(p => p.Name)
+            .Where(h => configuration.Exclusions.All(e => e != h))
+            .ToList();
 
     public void Dispose()
     {

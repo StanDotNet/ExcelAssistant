@@ -22,6 +22,8 @@ public class ExcelConfiguration
     /// </summary>
     public Dictionary<string, string> HumanReadableHeaders { get; set; } = new();
 
+    public List<string> Exclusions { get; set; } = [];
+
     /// <summary>
     /// Percent Matching excel headers with c# model fields. 
     /// </summary>

@@ -56,6 +56,10 @@ writer.AddMapping<Report>(r => r.Name, "Customer Name");
 writer.AddMapping<Report>(r => r.Balance, "Account Balance");
 writer.AddMapping<Customer>(c => c.Email, "Email Address");
 
+// Exclude a field using typed method or just providing name as string
+writer.Exclude<Customer>(r => r.Id);
+writer.Exclude("Id"); 
+
 // Build multiple sheets
 writer.BuildSheet(reports, "Reports");
 writer.BuildSheet(customers, "Customers");

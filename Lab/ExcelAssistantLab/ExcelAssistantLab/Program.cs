@@ -19,9 +19,9 @@ var reports = new List<Report>()
 
 var customers = new List<Customer>()
 {
-    new("Alice", "alice@mail.com"),
-    new("Bob", "bob@mail.com"),
-    new("Charlie", "charlie@mail.com"),
+    new(Guid.NewGuid(), "Alice", "alice@mail.com"),
+    new(Guid.NewGuid(), "Bob", "bob@mail.com"),
+    new(Guid.NewGuid(), "Charlie", "charlie@mail.com"),
 };
 
 using var writer = new ExcelWriter();
@@ -29,6 +29,8 @@ using var writer = new ExcelWriter();
 writer.AddMapping<Report>(r => r.Name, "Customer Name");
 writer.AddMapping<Report>(r => r.Balance, "Account Balance");
 writer.AddMapping<Customer>(c => c.Email, "Email Address");
+
+writer.Exclude<Customer>(r => r.Id);
 
 // Build multiple sheets
 writer.BuildSheet(reports, "Reports");
@@ -54,7 +56,7 @@ Console.WriteLine();
 
 // Example models
 public record Report(string Name, string Email, decimal Balance);
-public record Customer(string Name, string Email);
+public record Customer(Guid Id, string Name, string Email);
 
 // await using var file = File.OpenRead("/Users/stan/Code/md/temp/scott/Specials2.xlsx");
 // using var reader = new ExcelReader(file);
