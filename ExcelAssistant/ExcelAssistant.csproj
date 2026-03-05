@@ -1,25 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Title>A library for reading and writing Excel files.</Title>
+        <Title>ExcelAssistant — Read and Write Excel files in .NET</Title>
         <Authors>Stanislau Zakharevich</Authors>
-        <Description>A library for reading and writing Excel files. Based on NPOI pacage.</Description>
-        <Copyright>2023</Copyright>
+        <Description>A lightweight .NET library for reading and writing Excel files (.xls / .xlsx) with minimal boilerplate. Map Excel columns to C# models using reflection and fuzzy header matching — no XML config or attributes required. Supports multi-sheet workbooks, custom column mappings, property exclusions, and configurable column widths.</Description>
+        <Copyright>2023-2026</Copyright>
         <PackageProjectUrl>https://github.com/StanDotNet/ExcelAssistant</PackageProjectUrl>
         <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/StanDotNet/ExcelAssistant</RepositoryUrl>
-        <PackageTags>ExcelHelper, xls, xlsx, ExcelWriter, ExcelAssistant, Excel</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>excel;xlsx;xls;excel-reader;excel-writer;spreadsheet;import;export;dotnet;csharp;npoi;mapping;report;data;fuzzy;multi-sheet;ExcelAssistant</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>1.8.2</Version>
+        <Version>1.8.4</Version>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="FuzzySharp" Version="2.0.2" />
-      <PackageReference Include="NPOI" Version="2.7.5" />
+      <PackageReference Include="NPOI" Version="2.7.6" />
     </ItemGroup>
 
     <ItemGroup>

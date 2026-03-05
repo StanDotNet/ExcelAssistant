@@ -1,97 +1,184 @@
-﻿# ExcelAssistant
+# ExcelAssistant
 
-ExcelAssistant is a lightweight and efficient .NET library designed to simplify working with Microsoft Excel files. It allows developers to easily read, write, and manipulate Excel workbooks and worksheets directly within their .NET applications.
+[![NuGet](https://img.shields.io/nuget/v/ExcelAssistant.svg)](https://www.nuget.org/packages/ExcelAssistant/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ExcelAssistant.svg)](https://www.nuget.org/packages/ExcelAssistant/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/StanDotNet/ExcelAssistant/blob/main/LICENSE.md)
+
+A lightweight .NET library for reading and writing Excel files (.xls / .xlsx) with minimal boilerplate. Map Excel columns to C# models using reflection and fuzzy header matching — no XML config or attributes required.
 
 ## Features
 
-- Read data from Excel files
-- Write data to Excel files
-- Manipulate worksheets: add, delete, rename, set tab colors
-- Customize cells: set values, formats, column widths, and row heights
-- Apply styles to cells and worksheets
+- Read Excel files into typed C# models or plain dictionaries
+- Write any `List<T>` to Excel with styled headers
+- Multi-sheet support — read and write multiple sheets in one file
+- Fuzzy column header matching — tolerates typos and renamed columns
+- Custom column name mappings via fluent API
+- Exclude properties from output
+- Supports both `.xls` and `.xlsx` formats
+- Configurable column widths (min, max, coefficient)
 
 ## Installation
 
-You can install ExcelAssistant using [NuGet](https://www.nuget.org/packages/ExcelAssistant/):
-
-```bash
+Package Manager:
+```
 Install-Package ExcelAssistant
 ```
 
-### .NET CLI Console
-
+.NET CLI:
 ```
 dotnet add package ExcelAssistant
 ```
 
+## Quick Start
 
-## Getting Started
-
-### Writing a Excel File
-
-The following example demonstrates how to create an Excel file with multiple worksheets and custom headers:
+### Writing
 
 ```csharp
 using ExcelAssistant;
 
-// Sample data
-var reports = new List<Report>()
+var reports = new List<Report>
 {
-    new("Maki", "test@gmail.com", 100),
-    new("Smith", "test1@gmail.com", 200),
-    new("Lara", "test2@gmail.com", 450),
-};
-
-var customers = new List<Customer>()
-{
-    new("Alice", "alice@mail.com"),
-    new("Bob", "bob@mail.com"),
-    new("Charlie", "charlie@mail.com"),
+    new("Alice", "alice@mail.com", 1200.50m),
+    new("Bob",   "bob@mail.com",   850.00m),
 };
 
 using var writer = new ExcelWriter();
 
-// Define column mappings
-writer.AddMapping<Report>(r => r.Name, "Customer Name");
+// Map C# property names to human-readable Excel column headers
+writer.AddMapping<Report>(r => r.Name,    "Customer Name");
 writer.AddMapping<Report>(r => r.Balance, "Account Balance");
-writer.AddMapping<Customer>(c => c.Email, "Email Address");
 
-// Exclude a field using typed method or just providing name as string
-writer.Exclude<Customer>(r => r.Id);
-writer.Exclude("Id"); 
-
-// Build multiple sheets
 writer.BuildSheet(reports, "Reports");
+
+using var stream = File.OpenWrite("output.xlsx");
+writer.CopyTo(stream);
+
+public record Report(string Name, string Email, decimal Balance);
+```
+
+### Reading
+
+```csharp
+using var stream = File.OpenRead("output.xlsx");
+using var reader = new ExcelReader(stream);
+
+// Same mappings tell the reader which Excel column maps to which property
+reader.AddMapping<Report>(r => r.Name,    "Customer Name");
+reader.AddMapping<Report>(r => r.Balance, "Account Balance");
+
+// Reads first sheet by default
+var reports = reader.Read<Report>();
+
+// Read a specific sheet by name
+var customers = reader.Read<Customer>("Customers");
+```
+
+## Multi-Sheet Example
+
+```csharp
+using var writer = new ExcelWriter();
+
+writer.AddMapping<Report>(r => r.Name,      "Customer Name");
+writer.AddMapping<Customer>(c => c.Email,   "Email Address");
+writer.Exclude<Customer>(c => c.Id);          // omit from output
+
+writer.BuildSheet(reports,   "Reports");
 writer.BuildSheet(customers, "Customers");
 
-// Save the Excel file
 using var stream = File.OpenWrite("records.xlsx");
 writer.CopyTo(stream);
 
+// ---
 
-// Example models
-public record Report(string Name, string Email, decimal Balance);
-public record Customer(string Name, string Email);
+using var stream2 = File.OpenRead("records.xlsx");
+using var reader  = new ExcelReader(stream2);
 
-```
-
-### Reading from an Excel File
-
-You can also read data back into C# models. Column headers in the Excel file must match the defined mappings.
-
-```csharp
-using var stream = File.OpenRead("records.xlsx");
-using var reader = new ExcelReader(stream);
-
-reader.AddMapping<Report>(r => r.Name, "Customer Name");
-reader.AddMapping<Report>(r => r.Balance, "Account Balance");
+reader.AddMapping<Report>(r => r.Name,    "Customer Name");
 reader.AddMapping<Customer>(c => c.Email, "Email Address");
 
-// if sheet nane is not set it will read firs sheet
-var reportRecords = reader.Read<Report>();
+var reportRecords   = reader.Read<Report>();
 var customerRecords = reader.Read<Customer>("Customers");
+```
+
+## Reading Without a Model
+
+If you don't have a typed model, read each row as a plain dictionary:
+
+```csharp
+using var stream = File.OpenRead("data.xlsx");
+using var reader = new ExcelReader(stream);
+
+foreach (var row in reader.Read())
+{
+    Console.WriteLine(row["Customer Name"]);
+}
+```
+
+## Fuzzy Header Matching
+
+By default the reader tolerates up to 10% difference between Excel column names and C# property names. This means minor variations like `"CustomerName"` vs `"Customer Name"` or `"customer_name"` are matched automatically.
+
+Control the threshold via `MatchingPercentage` in configuration (0–100, default 90):
+
+```csharp
+var config = new ExcelConfiguration { MatchingPercentage = 80 };
+using var reader = new ExcelReader(stream, config);
+```
+
+## Excluding Properties
+
+```csharp
+// Using typed expression
+writer.Exclude<Customer>(c => c.InternalId);
+
+// Using property name as string
+writer.Exclude("InternalId");
+```
+
+## Configuration Reference
+
+All options are set via `ExcelConfiguration`:
+
+```csharp
+var config = new ExcelConfiguration
+{
+    ExcelType           = ExcelType.xlsx,  // xlsx (default) or xls
+    SheetName           = "Sheet1",        // target sheet; null = first sheet
+    MatchingPercentage  = 90,              // fuzzy match threshold (0–100)
+    ColumnSizeCoefficient = 300,           // width units per character
+    MinColumnSize       = 10,              // minimum column width in characters
+    MaxColumnSize       = 60,              // maximum column width in characters
+};
+
+using var writer = new ExcelWriter(config);
+using var reader = new ExcelReader(stream, config);
+```
+
+| Property | Default | Description |
+|---|---|---|
+| `ExcelType` | `xlsx` | File format: `xlsx` or `xls` |
+| `SheetName` | `null` | Sheet to read/write; `null` uses the first/active sheet |
+| `MatchingPercentage` | `90` | Minimum fuzzy match score for header detection (0–100) |
+| `ColumnSizeCoefficient` | `300` | Width units per character (affects all columns) |
+| `MinColumnSize` | `10` | Minimum column width in characters |
+| `MaxColumnSize` | `60` | Maximum column width in characters |
+| `HumanReadableHeaders` | `{}` | Manual column name mappings (set via `AddMapping`) |
+| `Exclusions` | `[]` | Properties to exclude from output (set via `Exclude`) |
+
+## Supported Property Types
+
+`string`, `byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, `bool`, `Guid`, `DateTime`, `DateOnly`, `TimeSpan`, `TimeOnly` — and their nullable equivalents.
+
+## Content Type
+
+Use `ContentType` to set the correct HTTP response header when serving files from an API:
+
+```csharp
+Response.ContentType = writer.ContentType;
+// "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" for .xlsx
+// "application/vnd.ms-excel" for .xls
 ```
 
 ## License
 
-ExcelAssistant is released under the [MIT License](https://github.com/StanDotNet/ExcelAssistant/blob/main/LICENSE.md).
+MIT — see [LICENSE.md](https://github.com/StanDotNet/ExcelAssistant/blob/main/LICENSE.md).

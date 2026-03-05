@@ -5,7 +5,7 @@ public class ExcelConfiguration
     /// <summary>
     /// Type of Excel file
     /// </summary>
-    public ExcelType? ExcelType { get; set; }
+    public ExcelType? ExcelType { get; set; } = ExcelAssistant.ExcelType.xlsx;
     
     /// <summary>
     /// Sheet Name. By default will be reading first sheet.
@@ -33,4 +33,14 @@ public class ExcelConfiguration
     /// The coefficient shows how much space is needed for one symbol.
     /// </summary>
     public int ColumnSizeCoefficient { get; set; } = 300;
+
+    /// <summary>
+    /// Minimum column width in characters. Prevents columns from being too narrow.
+    /// </summary>
+    public int MinColumnSize { get; set; } = 10;
+
+    /// <summary>
+    /// Maximum column width in characters. Prevents very long content from squeezing other columns.
+    /// </summary>
+    public int MaxColumnSize { get; set; } = 60;
 }
