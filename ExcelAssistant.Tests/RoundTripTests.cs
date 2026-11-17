@@ -99,7 +99,7 @@ public class RoundTripTests
     [InlineData(ExcelType.xls)]
     public void Decimals_round_trip_under_a_comma_culture(ExcelType type)
     {
-        using var culture = Culture("pl-PL");
+        using var culture = CommaDecimalCulture();
         using var stream = Write(type, [new Amount(1200.55m)]);
         using var reader = Reader(stream, type);
         reader.OpenSheet("Sheet");

@@ -53,7 +53,13 @@ internal static class TestSupport
         return stream;
     }
 
-    public static IDisposable Culture(string name) => new CultureScope(CultureInfo.GetCultureInfo(name));
+    public static IDisposable CommaDecimalCulture()
+    {
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.NumberFormat.NumberDecimalSeparator = ",";
+        culture.NumberFormat.NumberGroupSeparator = " ";
+        return new CultureScope(culture);
+    }
 
     private sealed class CultureScope : IDisposable
     {

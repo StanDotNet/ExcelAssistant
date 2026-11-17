@@ -135,7 +135,8 @@ public class WriterTests
         using var stream = new MemoryStream();
         writer.CopyTo(stream);
 
-        var sheet = NPOI.SS.UserModel.WorkbookFactory.Create(stream).GetSheet("Sheet");
+        using var workbook = NPOI.SS.UserModel.WorkbookFactory.Create(stream);
+        var sheet = workbook.GetSheet("Sheet");
 
         Assert.Equal(60 * 300, sheet.GetColumnWidth(0));
         Assert.Equal(10 * 300, sheet.GetColumnWidth(1));
