@@ -23,6 +23,14 @@
       <PackageReference Include="NPOI" Version="2.8.1" />
       <PackageReference Include="SkiaSharp" Version="3.119.4" />
       <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.4" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+      <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
+      <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.15" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
       <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0" />
       <PackageReference Include="System.Security.Cryptography.Xml" Version="11.0.0" />
     </ItemGroup>
