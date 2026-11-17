@@ -37,8 +37,10 @@ writer.BuildSheet(reports, "Reports");
 writer.BuildSheet(customers, "Customers");
 
 // Create and save a new Excel file with two sheets
-using var stream = File.OpenWrite("records.xlsx");
-writer.CopyTo(stream);
+using (var stream = File.Create("records.xlsx"))
+{
+    writer.CopyTo(stream);
+}
 
 
 using var stream2 = File.OpenRead("records.xlsx");
@@ -51,8 +53,8 @@ reader.AddMapping<Customer>(c => c.Email, "Email Address");
 var reportRecords = reader.Read<Report>();
 var customerRecords = reader.Read<Customer>("Customers");
 
-
-Console.WriteLine();
+reportRecords.ForEach(Console.WriteLine);
+customerRecords.ForEach(Console.WriteLine);
 
 // Example models
 public record Report(string Name, string Email, decimal Balance);
