@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Title>ExcelAssistant — Read and Write Excel files in .NET</Title>
@@ -15,7 +15,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageTags>excel;xlsx;xls;excel-reader;excel-writer;spreadsheet;import;export;dotnet;csharp;npoi;mapping;report;data;fuzzy;multi-sheet;ExcelAssistant</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>1.8.4</Version>
+        <Version>1.9.0</Version>
     </PropertyGroup>
 
     <ItemGroup>

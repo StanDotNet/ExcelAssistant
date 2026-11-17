@@ -63,7 +63,11 @@ public class RoundTripTests
     [InlineData(ExcelType.xlsx, "1.005", "1.005")]
     [InlineData(ExcelType.xlsx, "-42.42", "-42.42")]
     [InlineData(ExcelType.xlsx, "123456789.123456789", "123456789.12345679")]
+#if NET11_0_OR_GREATER
+    [InlineData(ExcelType.xlsx, "12345678901234.567", "12345678901234.566")]
+#else
     [InlineData(ExcelType.xlsx, "12345678901234.567", "12345678901234.568")]
+#endif
     [InlineData(ExcelType.xls, "0.015", "0.015")]
     [InlineData(ExcelType.xls, "0.1", "0.1")]
     [InlineData(ExcelType.xls, "1.005", "1.005")]
